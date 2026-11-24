@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MoodBloom (무드블룸) - 아기자기한 마음 정원 회고 다이어리</title>
+  
+  <!-- 아기자기한 감성 폰트 & 스타일시트 로드 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js (WebGL 3D 그래픽스 엔진: 로컬 오프라인 지원 + CDN 폴백) -->
+  <script src="three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"><\/script>');
+    }
+  </script>
+</head>
+<body class="theme-light">
+
+  <div class="app-viewport">
+    
+    <!-- 🌸 최상단 아기자기 마스코트 & 브랜드 헤더 -->
+    <header class="cute-top-header">
+      <div class="header-utility-bar">
+        <div class="streak-pill-badge" title="연속으로 피워낸 마음 꽃">
+          <span>🔥</span> <span id="streakDaysCount">12일</span> 연속 피어남!
+        </div>
+        <div class="header-action-group">
+          <button id="themeToggleBtn" class="icon-round-btn" title="낮/밤 테마 전환">
+            <span id="themeIcon">🌙</span>
+          </button>
+          <button class="icon-round-btn" onclick="app.exportDataJSON()" title="다이어리 데이터 백업">
+            <span>💾</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 마스코트 블루미 & 로고 -->
+      <div class="brand-mascot-row">
+        <div class="bloomy-avatar-wrap">
+          <div class="bloomy-avatar-inner">
+            <span>🌸</span>
+          </div>
+        </div>
+        <div class="brand-info-wrap">
+          <h1 class="brand-main-title">
+            <span>Mood</span><span class="logo-highlight">·Bloom</span>
+            <span class="flower-sparkle">✿</span>
+          </h1>
+          <div class="bloomy-speech-bubble" id="bloomySpeech">
+            오늘도 마음 정원에 놀러와줘서 고마워요! 🌸
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 🌸 메인 콘텐츠 영역 -->
+    <main class="app-main-content">
+
+      <!-- ========================================================
+           TAB 1: 오늘의 회고 & 꽃 피우기 (Write & Bloom)
+           ======================================================== -->
+      <section id="tab-write" class="tab-pane active">
+        
+        <div class="marshmallow-card">
+          <div class="washi-tape"></div>
+          
+          <div class="card-cute-header">
+            <div class="card-pill-tag"><span>🌸</span> 오늘의 마음 씨앗 심기</div>
+            <h2 class="card-title">오늘 어떤 꽃을 <span style="color:var(--accent-pink);">피워볼까요?</span></h2>
+            <p class="card-desc">오늘 있었던 일이나 마음을 2~3줄로 편하게 털어놓아 보세요.</p>
+          </div>
+
+          <!-- 빠른 감정 꽃 요정 칩 셀렉터 -->
+          <div class="mood-chips-scroll">
+            <button class="mood-chip-btn selected" data-emotion="calm">
+              <span>🍀</span> 모찌 클로버
+            </button>
+            <button class="mood-chip-btn" data-emotion="joy">
+              <span>🌻</span> 해바라기 뽀송이
+            </button>
+            <button class="mood-chip-btn" data-emotion="hope">
+              <span>✨</span> 별빛 프리지아
+            </button>
+            <button class="mood-chip-btn" data-emotion="gratitude">
+              <span>💖</span> 하트 로즈베리
+            </button>
+            <button class="mood-chip-btn" data-emotion="anxiety">
+              <span>💜</span> 구름 라일락
+            </button>
+            <button class="mood-chip-btn" data-emotion="sadness">
+              <span>💧</span> 물방울 물망초
+            </button>
+            <button class="mood-chip-btn" data-emotion="anger">
+              <span>🌷</span> 불꽃 튤립 삐약이
+            </button>
+            <button class="mood-chip-btn" data-emotion="burnout">
+              <span>☁️</span> 잠자는 민들레
+            </button>
+          </div>
+
+          <!-- 다이어리 편지지 텍스트박스 -->
+          <div class="diary-paper-box">
+            <textarea id="dailyReflectionInput" class="diary-textarea" maxlength="250"
+              placeholder="퇴근길에 따뜻한 라떼를 사서 한강변을 천천히 걸었다. 바람이 상쾌하고 참 평온했다..."></textarea>
+            
+            <div class="diary-footer-row">
+              <span id="charCountDisplay" class="char-counter">0 / 250자</span>
+              <button id="voiceInputBtn" class="voice-input-btn">
+                <span>🎤</span> 음성으로 이야기하기
+              </button>
+            </div>
+          </div>
+
+          <!-- 메인 액션 버튼: 물뿌리개로 물주기 -->
+          <button id="runBloomBtn" class="btn-primary-bloom">
+            <span>🚿</span> 물뿌리개로 물주고 꽃피우기
+          </button>
+        </div>
+
+        <!-- 🌸 분석 완료 후 활짝 피어나는 꽃 결과 카드 -->
+        <div id="flowerBloomResultCard" class="marshmallow-card flower-bloom-result-card">
+          <div class="washi-tape pink"></div>
+
+          <div class="card-cute-header" style="text-align:center;">
+            <div class="card-pill-tag"><span>🎉</span> 마음 꽃 만개 축하!</div>
+            <h2 id="detectedFlowerName" class="card-title">🍀 모찌 클로버</h2>
+            <div id="detectedEnergyBadge" class="cute-tag-pill" style="margin-top:6px; display:inline-block;">회복탄력성: 86점</div>
+          </div>
+
+          <!-- 3D 꽃 캐릭터 캔버스 스테이지 -->
+          <div class="canvas-3d-stage">
+            <div id="singleFlowerCanvasStage" style="width:100%; height:100%;"></div>
+            <div class="stage-btn-layer">
+              <button id="toggleWireframeBtn" class="mini-pill-btn">🌸 3D 클레이</button>
+            </div>
+          </div>
+
+          <!-- 추출된 키워드 태그들 -->
+          <div id="extractedKeywordsList" class="keyword-tags-row" style="justify-content:center;"></div>
+
+          <!-- 편지 봉투 스타일의 AI 공감 편지 -->
+          <div class="ai-letter-envelope-box">
+            <div class="envelope-stamp-tag">💌 블루미의 편지</div>
+            <p id="aiEmpathyLetterText" class="letter-quote-text">
+              "거친 파도가 잦아들고 맑은 호수 같은 평온이 깃든 하루였군요. 아무것도 강요하지 않는 이 보들보들한 쉼을 온전히 누려보세요."
+            </p>
+          </div>
+
+          <!-- 추천 미니 힐링 루틴 -->
+          <div class="routine-cozy-box">
+            <div style="font-family:'Jua',sans-serif; font-size:1rem; margin-bottom:10px; color:var(--text-primary);">
+              🌿 5분 포근 리추얼 처방
+            </div>
+            <div class="routine-item-row">
+              <div class="routine-icon-badge">🧘</div>
+              <div><b>추천 호흡:</b> <span id="routineBreathingText">박스 호흡 (4-4-4-4 마음 안정)</span></div>
+            </div>
+            <div class="routine-item-row">
+              <div class="routine-icon-badge">🎵</div>
+              <div><b>치유 사운드:</b> <span id="routineSoundText">숲속 포근한 단비</span></div>
+            </div>
+            <div class="routine-item-row">
+              <div class="routine-icon-badge">✨</div>
+              <div><b>마음 퀘스트:</b> <span id="routineQuestText">창문을 열고 시원한 밤바람을 들이마시며 어깨 힘 풀기</span></div>
+            </div>
+          </div>
+
+          <!-- 정원에 심기 CTA -->
+          <button id="plantToGardenBtn" class="btn-plant-garden">
+            <span>🪴</span> 내 감정 정원에 예쁘게 심기
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ========================================================
+           TAB 2: 감정 정원 (3D Mood Garden Diorama)
+           ======================================================== -->
+      <section id="tab-garden" class="tab-pane">
+        
+        <div class="marshmallow-card">
+          <div class="washi-tape mint"></div>
+
+          <div class="card-cute-header">
+            <div class="card-pill-tag"><span>🪴</span> 마이 리틀 감정 정원</div>
+            <h2 class="card-title">한 달 동안 자라난 <span style="color:var(--accent-mint);">나의 마음 정원</span></h2>
+            <p class="card-desc">매일 심은 감정 꽃들이 포근한 부유섬 정원에 예쁜 화분으로 피어납니다.</p>
+          </div>
+
+          <div class="garden-controls-bar">
+            <div class="filter-btn-group">
+              <button class="garden-filter-btn active" data-filter="all">전체보기</button>
+              <button class="garden-filter-btn" data-filter="positive">행복·쉼</button>
+              <button class="garden-filter-btn" data-filter="healing">토닥·위로</button>
+              <button class="garden-filter-btn" data-filter="recent">최근 7일</button>
+            </div>
+            <button id="toggleGardenOrbitBtn" class="garden-filter-btn">
+              <span>🌀</span> 산책 모드
+            </button>
+          </div>
+
+          <!-- 3D 디오라마 정원 스테이지 -->
+          <div class="garden-canvas-stage">
+            <div id="garden3dCanvasStage" style="width:100%; height:100%;"></div>
+            <div class="garden-hint-bubble">
+              🪴 화분을 클릭하면 그날의 회고 다이어리가 펼쳐져요!
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================
+           TAB 3: 아카이브 & 다꾸 캘린더 (Sticker Diary Calendar)
+           ======================================================== -->
+      <section id="tab-calendar" class="tab-pane">
+        
+        <div class="marshmallow-card">
+          <div class="washi-tape"></div>
+
+          <div class="calendar-month-header">
+            <button id="calPrevMonthBtn" class="cal-nav-btn">◀</button>
+            <h2 id="calendarMonthYearTitle" class="card-title" style="margin:0;">2026년 11월</h2>
+            <button id="calNextMonthBtn" class="cal-nav-btn">▶</button>
+          </div>
+
+          <!-- 요일 헤더 -->
+          <div class="calendar-weekdays-row">
+            <span style="color:#EF4444;">일</span>
+            <span>월</span>
+            <span>화</span>
+            <span>수</span>
+            <span>목</span>
+            <span>금</span>
+            <span style="color:#3B82F6;">토</span>
+          </div>
+
+          <!-- 날짜별 스티커 그리드 -->
+          <div id="calendarDaysGrid" class="calendar-grid-cells"></div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================
+           TAB 4: 힐링 스튜디오 (Cozy Breathing & Sound Room)
+           ======================================================== -->
+      <section id="tab-sound" class="tab-pane">
+        
+        <!-- 호흡 컴패니언 카드 -->
+        <div class="marshmallow-card">
+          <div class="washi-tape pink"></div>
+
+          <div class="card-cute-header" style="text-align:center;">
+            <div class="card-pill-tag"><span>🧘</span> 포근한 마음 호흡 가이드</div>
+            <h2 class="card-title">블루미와 함께하는 <span style="color:var(--accent-pink);">4-7-8 이완 호흡</span></h2>
+            <p class="card-desc">동글동글 풍선이 커질 때 들이쉬고, 작아질 때 편안히 내쉬어보세요.</p>
+          </div>
+
+          <div class="breathing-companion-stage">
+            <div class="breathing-orb-wrap">
+              <div id="breathingOrb" class="breathing-orb">
+                <div class="orb-face">🌸</div>
+              </div>
+            </div>
+            <div id="breathingPhaseLabel" class="breathing-phase-title">편안하게 숨을 고르세요</div>
+            <div id="breathingSecondsLabel" class="breathing-seconds-counter">준비</div>
+
+            <button id="startBreatheBtn" class="btn-primary-bloom" style="max-width:280px; margin-top:20px;">
+              <span>▶️</span> 호흡 시작하기
+            </button>
+          </div>
+        </div>
+
+        <!-- 6대 오르골 & 자연음 플레이어 카드 -->
+        <div class="marshmallow-card">
+          <div class="washi-tape mint"></div>
+
+          <div class="card-cute-header">
+            <div class="card-pill-tag"><span>🎵</span> 무의존성 Web Audio 사운드</div>
+            <h2 class="card-title">동화 속 <span style="color:var(--accent-yellow);">포근한 치유의 소리</span></h2>
+            <p class="card-desc">브라우저에서 100% 실시간 합성되는 따스한 자연음과 오르골 선율입니다.</p>
+          </div>
+
+          <div class="sound-cards-grid">
+            <div class="cute-sound-card" data-sound="musicbox" onclick="app.playAmbientSound('musicbox')">
+              <div class="sound-card-icon">🎵</div>
+              <div class="sound-card-name">오르골 자장가</div>
+              <div class="sound-card-desc">동화나라 펜타토닉 벨</div>
+              <div class="sound-card-status">재생 ▶</div>
+            </div>
+
+            <div class="cute-sound-card" data-sound="rain" onclick="app.playAmbientSound('rain')">
+              <div class="sound-card-icon">🌧️</div>
+              <div class="sound-card-name">숲속 포근한 단비</div>
+              <div class="sound-card-desc">창가에 맺히는 빗방울</div>
+              <div class="sound-card-status">재생 ▶</div>
+            </div>
+
+            <div class="cute-sound-card" data-sound="bowl" onclick="app.playAmbientSound('bowl')">
+              <div class="sound-card-icon">🧘</div>
+              <div class="sound-card-name">432Hz 싱잉볼</div>
+              <div class="sound-card-desc">깊은 이완과 평온함</div>
+              <div class="sound-card-status">재생 ▶</div>
+            </div>
+
+            <div class="cute-sound-card" data-sound="ocean" onclick="app.playAmbientSound('ocean')">
+              <div class="sound-card-icon">🌊</div>
+              <div class="sound-card-name">핑크빛 파도소리</div>
+              <div class="sound-card-desc">잔잔하게 밀려오는 파도</div>
+              <div class="sound-card-status">재생 ▶</div>
+            </div>
+
+            <div class="cute-sound-card" data-sound="fire" onclick="app.playAmbientSound('fire')">
+              <div class="sound-card-icon">🔥</div>
+              <div class="sound-card-name">타닥타닥 모닥불</div>
+              <div class="sound-card-desc">따스한 벽난로 장작불</div>
+              <div class="sound-card-status">재생 ▶</div>
+            </div>
+
+            <div class="cute-sound-card" data-sound="windchimes" onclick="app.playAmbientSound('windchimes')">
+              <div class="sound-card-icon">🎐</div>
+              <div class="sound-card-name">산들바람 풍경</div>
+              <div class="sound-card-desc">맑고 고요한 유리 풍경</div>
+              <div class="sound-card-status">재생 ▶</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================
+           TAB 5: 감정 꽃 도감 & 월간 리포트 (Flower Dex & Insights)
+           ======================================================== -->
+      <section id="tab-stats" class="tab-pane">
+        
+        <div class="marshmallow-card">
+          <div class="washi-tape"></div>
+
+          <div class="card-cute-header">
+            <div class="card-pill-tag"><span>📖</span> 나의 감정 꽃 도감</div>
+            <h2 class="card-title">내가 모은 <span style="color:var(--accent-pink);">8대 감정 꽃 요정들</span></h2>
+            <p class="card-desc">카드를 클릭하면 해당 꽃 요정을 3D로 바로 감상할 수 있어요!</p>
+          </div>
+
+          <!-- 감정 꽃 도감 그리드 -->
+          <div id="flowerDexGrid" class="dex-cards-grid"></div>
+        </div>
+
+        <!-- 월간 마음 리포트 -->
+        <div class="marshmallow-card">
+          <div class="washi-tape pink"></div>
+
+          <div class="card-cute-header">
+            <div class="card-pill-tag"><span>📊</span> 월간 마음 성장 리포트</div>
+            <h2 class="card-title">이달의 마음 <span style="color:var(--accent-mint);">정원 분석</span></h2>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:18px;">
+            <div style="background:var(--bg-surface); padding:14px; border-radius:18px; text-align:center;">
+              <div id="statTotalCount" style="font-family:'Fredoka',sans-serif; font-size:1.4rem; font-weight:700; color:var(--accent-pink);">16송이</div>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:2px;">총 피어난 꽃</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:18px; text-align:center;">
+              <div id="statTopEmotion" style="font-family:'Jua',sans-serif; font-size:1.15rem; color:var(--accent-mint);">모찌 클로버</div>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:2px;">가장 많은 꽃</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:18px; text-align:center;">
+              <div style="font-family:'Fredoka',sans-serif; font-size:1.4rem; font-weight:700; color:var(--accent-yellow);">88점</div>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:2px;">회복탄력성 평균</div>
+            </div>
+          </div>
+
+          <!-- 감정 스펙트럼 프로그레스 바 -->
+          <div style="margin-bottom:20px;">
+            <div style="font-family:'Jua',sans-serif; font-size:1.05rem; margin-bottom:8px;">🌸 감정 스펙트럼 점유율</div>
+            <div id="emotionDistributionBars" class="stat-spectrum-bars"></div>
+          </div>
+
+          <!-- 자주 등장한 키워드 태그 -->
+          <div style="margin-bottom:20px;">
+            <div style="font-family:'Jua',sans-serif; font-size:1.05rem; margin-bottom:8px;">🏷️ 자주 등장한 마음의 키워드</div>
+            <div id="statWordcloud" class="keyword-tags-row"></div>
+          </div>
+
+          <!-- 블루미의 월간 칭찬 도장 총평 -->
+          <div class="ai-letter-envelope-box">
+            <div class="envelope-stamp-tag">💮 참 잘했어요!</div>
+            <p style="font-size:0.95rem; line-height:1.7; color:#78350F; margin:6px 0;">
+              "이번 달 당신의 마음 정원에는 평온한 옥빛 모찌 클로버와 기쁨의 해바라기가 조화롭게 피어났어요! 불안이나 피로가 찾아올 때마다 2~3줄로 마음을 솔직하게 털어놓고 호흡을 가다듬은 덕분에, 마음 회복탄력성이 무척 건강하게 유지되고 있답니다. 다음 달에도 매일 피어날 당신만의 정원을 기대할게요! 🌸"
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- 🌸 하단 마시멜로 탭 바 -->
+    <nav class="app-nav-bar">
+      <button class="nav-tab-btn active" data-tab="write">
+        <span class="nav-icon">🌸</span>
+        <span class="nav-label">오늘의 꽃</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="garden">
+        <span class="nav-icon">🪴</span>
+        <span class="nav-label">감정 정원</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="calendar">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">다꾸 달력</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="sound">
+        <span class="nav-icon">🎵</span>
+        <span class="nav-label">힐링룸</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="stats">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">마음 도감</span>
+      </button>
+    </nav>
+
+    <!-- 🌸 일기 상세 스크랩북 모달 -->
+    <div id="entryDetailModal" class="modal-backdrop">
+      <div class="modal-scrapbook-dialog">
+        <button class="modal-close-round" onclick="app.closeModal('entryDetailModal')">✕</button>
+        
+        <div style="margin-bottom:12px;">
+          <div id="modalEntryDate" style="font-size:0.9rem; color:var(--text-muted); font-weight:700;">📅 2026-11-24 회고 다이어리</div>
+          <h3 id="modalEntryEmotion" class="card-title" style="margin-top:4px;">🍀 모찌 클로버</h3>
+        </div>
+
+        <div class="modal-diary-quote">
+          <p id="modalEntryText">오늘 일기 원문 내용</p>
+        </div>
+
+        <div id="modalEntryKeywords" class="keyword-tags-row"></div>
+
+        <div class="ai-letter-envelope-box">
+          <div class="envelope-stamp-tag">💌 블루미의 위로</div>
+          <p id="modalEntryEmpathy" class="letter-quote-text">"위로 문장 내용"</p>
+        </div>
+
+        <div id="modalEntryRoutine" class="routine-cozy-box" style="margin-bottom:16px;"></div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+          <button style="background:none; border:none; color:#EF4444; font-size:0.9rem; cursor:pointer; font-weight:700;" onclick="app.deleteCurrentEntry()">
+            🗑️ 오브제 삭제
+          </button>
+          <button class="mini-pill-btn" style="padding:8px 18px;" onclick="app.closeModal('entryDetailModal')">닫기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 메인 스크립트 로드 -->
+  <script src="sound.js"></script>
+  <script src="object3d.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
